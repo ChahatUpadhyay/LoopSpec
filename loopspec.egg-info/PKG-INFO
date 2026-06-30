@@ -1,3 +1,14 @@
+Metadata-Version: 2.1
+Name: loopspec
+Version: 2.0.0
+Summary: Self-correcting, context-aware AI development protocol
+Home-page: https://github.com/ChahatUpadhyay/LoopSpec
+Author: ChahatUpadhyay
+License: MIT
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
 # LoopSpec v2.0 — Self-Correcting AI Development Protocol
 
 > A **real, executable** protocol for building AI systems that detect errors, correct themselves, and track everything.
