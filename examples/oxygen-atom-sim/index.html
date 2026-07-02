@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oxygen Atom Simulation — LoopSpec v2 Demo</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+  overflow: hidden; 
+  background: #0a0a1a; 
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #e0e0e0;
+}
+#canvas-container { width: 100vw; height: 100vh; display: block; }
+#info-panel {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: rgba(10, 10, 30, 0.85);
+  border: 1px solid rgba(100, 140, 255, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 240px;
+  backdrop-filter: blur(10px);
+  z-index: 100;
+}
+#info-panel h1 { font-size: 1.4em; margin-bottom: 4px; color: #7fb3ff; }
+#info-panel .atomic-number { font-size: 0.9em; color: #aaa; margin-bottom: 12px; }
+#info-panel .config { font-size: 1.1em; font-family: monospace; color: #c8e6ff; margin-bottom: 16px; }
+#info-panel .legend { font-size: 0.8em; line-height: 1.8; }
+#info-panel .legend-item { display: flex; align-items: center; gap: 8px; }
+#info-panel .legend-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+#fps-counter {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(10, 10, 30, 0.7);
+  border: 1px solid rgba(100, 255, 100, 0.3);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: monospace;
+  font-size: 0.85em;
+  z-index: 100;
+}
+</style>
+</head>
+<body>
+<div id="canvas-container"></div>
+
+<div id="info-panel">
+  <h1 id="atom-name">Oxygen</h1>
+  <div class="atomic-number">Atomic Number: <span id="atomic-number">8</span></div>
+  <div class="config" id="electron-config">1s² 2s² 2p⁴</div>
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot" style="background:#ff4444;"></span> Protons (8)</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#6688aa;"></span> Neutrons (8)</div>
+    <div class="legend-item"><span class="legend-dot" style="background:rgba(100,180,255,0.5);"></span> 1s orbital</div>
+    <div class="legend-item"><span class="legend-dot" style="background:rgba(80,220,180,0.4);"></span> 2s orbital</div>
+    <div class="legend-item"><span class="legend-dot" style="background:rgba(255,160,60,0.6);"></span> 2p filled lobes</div>
+    <div class="legend-item"><span class="legend-dot" style="background:rgba(255,160,60,0.15);"></span> 2p empty lobes</div>
+  </div>
+</div>
+
+<div id="fps-counter">FPS: --</div>
+
+<!-- Three.js via global script (avoids ES module CORS issues on file://) -->
+<!-- Using r149 — last version with examples/js/ global scripts (r150+ removed them) -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/examples/js/controls/OrbitControls.js"></script>
+
+<script>
+// ============================================================
+// OXYGEN ATOM SIMULATION
+// Physics-based 3D visualization using Three.js
+// LoopSpec v2 Protocol Demo
+// ============================================================
+
+(function() {
+  'use strict';
+
+  // --- PHYSICS CONSTANTS (visualization scale) ---
+  // Real ratios exaggerated for visibility. See CONTEXT.md for citations.
+  const NUCLEUS_RADIUS = 0.5;        // Cluster radius for 16 nucleons
+  const NUCLEON_RADIUS = 0.18;       // Individual proton/neutron radius
+  const ORBITAL_1S_RADIUS = 2.0;     // 1s cloud radius
+  const ORBITAL_2S_RADIUS = 4.5;     // 2s cloud radius (ratio ~2.25x, real ~4.4x)
+  const ORBITAL_2P_EXTENT = 4.0;     // 2p lobe distance from center
+  const ORBITAL_2P_LOBE_SCALE = [0.8, 0.8, 1.8]; // Ellipsoid: squished x/y, stretched z
+
+  // --- SCENE SETUP ---
+  const container = document.getElementById('canvas-container');
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0a1a);
+
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(8, 5, 10);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  // --- CONTROLS (C6) ---
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.enableRotate = true;
+  controls.enableZoom = true;
+  controls.enablePan = true;
+  controls.minDistance = 3;
+  controls.maxDistance = 30;
+
+  // --- LIGHTING ---
+  const ambientLight = new THREE.AmbientLight(0x404060, 0.6);
+  scene.add(ambientLight);
+  const pointLight = new THREE.PointLight(0xffffff, 1.2, 50);
+  pointLight.position.set(5, 8, 5);
+  scene.add(pointLight);
+  const pointLight2 = new THREE.PointLight(0x4488ff, 0.5, 30);
+  pointLight2.position.set(-5, -3, -5);
+  scene.add(pointLight2);
+
+  // --- NUCLEUS (C1) ---
+  // 8 protons (red) + 8 neutrons (blue-gray) packed in a sphere
+  const nucleusGroup = new THREE.Group();
+  nucleusGroup.name = 'nucleus';
+
+  const protonMaterial = new THREE.MeshPhongMaterial({ color: 0xff4444, shininess: 80 });
+  const neutronMaterial = new THREE.MeshPhongMaterial({ color: 0x6688aa, shininess: 80 });
+  const nucleonGeometry = new THREE.SphereGeometry(NUCLEON_RADIUS, 16, 12);
+
+  // Pack 16 nucleons in approximately spherical arrangement
+  // Using Fibonacci sphere distribution for even spacing
+  function fibonacciSphere(n, radius) {
+    const points = [];
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < n; i++) {
+      const y = 1 - (i / (n - 1)) * 2; // y from 1 to -1
+      const radiusAtY = Math.sqrt(1 - y * y);
+      const theta = goldenAngle * i;
+      points.push(new THREE.Vector3(
+        Math.cos(theta) * radiusAtY * radius,
+        y * radius,
+        Math.sin(theta) * radiusAtY * radius
+      ));
+    }
+    return points;
+  }
+
+  const nucleonPositions = fibonacciSphere(16, NUCLEUS_RADIUS);
+
+  // First 8 = protons, next 8 = neutrons
+  for (let i = 0; i < 16; i++) {
+    const mesh = new THREE.Mesh(
+      nucleonGeometry,
+      i < 8 ? protonMaterial : neutronMaterial
+    );
+    mesh.position.copy(nucleonPositions[i]);
+    mesh.name = i < 8 ? 'proton' : 'neutron';
+    nucleusGroup.add(mesh);
+  }
+
+  scene.add(nucleusGroup);
+
+  // --- ELECTRON ORBITALS ---
+  const orbitalsGroup = new THREE.Group();
+  orbitalsGroup.name = 'orbitals';
+
+  // -- 1s orbital (C2, C3): 2 electrons as spherical probability cloud --
+  const orbital1sGroup = new THREE.Group();
+  orbital1sGroup.name = 'orbital_1s';
+
+  const s1Material = new THREE.MeshPhongMaterial({
+    color: 0x64b4ff,
+    transparent: true,
+    opacity: 0.18,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  });
+  // Two concentric shells to represent 2 electrons in 1s
+  const s1Geometry = new THREE.SphereGeometry(ORBITAL_1S_RADIUS, 32, 24);
+  const s1Mesh1 = new THREE.Mesh(s1Geometry, s1Material);
+  s1Mesh1.name = 'electron_1s_1';
+  orbital1sGroup.add(s1Mesh1);
+
+  const s1InnerGeometry = new THREE.SphereGeometry(ORBITAL_1S_RADIUS * 0.7, 32, 24);
+  const s1Mesh2 = new THREE.Mesh(s1InnerGeometry, s1Material.clone());
+  s1Mesh2.material.opacity = 0.25;
+  s1Mesh2.name = 'electron_1s_2';
+  orbital1sGroup.add(s1Mesh2);
+
+  orbitalsGroup.add(orbital1sGroup);
+
+  // -- 2s orbital (C2, C3): 2 electrons as larger spherical cloud --
+  const orbital2sGroup = new THREE.Group();
+  orbital2sGroup.name = 'orbital_2s';
+
+  const s2Material = new THREE.MeshPhongMaterial({
+    color: 0x50dcb4,
+    transparent: true,
+    opacity: 0.12,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  });
+  const s2Geometry = new THREE.SphereGeometry(ORBITAL_2S_RADIUS, 32, 24);
+  const s2Mesh1 = new THREE.Mesh(s2Geometry, s2Material);
+  s2Mesh1.name = 'electron_2s_1';
+  orbital2sGroup.add(s2Mesh1);
+
+  const s2InnerGeometry = new THREE.SphereGeometry(ORBITAL_2S_RADIUS * 0.75, 32, 24);
+  const s2Mesh2 = new THREE.Mesh(s2InnerGeometry, s2Material.clone());
+  s2Mesh2.material.opacity = 0.16;
+  s2Mesh2.name = 'electron_2s_2';
+  orbital2sGroup.add(s2Mesh2);
+
+  orbitalsGroup.add(orbital2sGroup);
+
+  // -- 2p orbitals (C2, C4, C9): 4 electrons in 3 orbitals (Hund's rule) --
+  // px: 2 electrons (paired) — both lobes bright
+  // py: 1 electron (unpaired) — one lobe bright, one dim
+  // pz: 1 electron (unpaired) — one lobe bright, one dim
+  const orbital2pGroup = new THREE.Group();
+  orbital2pGroup.name = 'orbital_2p';
+
+  const pFilledMaterial = new THREE.MeshPhongMaterial({
+    color: 0xffa03c,
+    transparent: true,
+    opacity: 0.45,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  });
+
+  const pEmptyMaterial = new THREE.MeshPhongMaterial({
+    color: 0xffa03c,
+    transparent: true,
+    opacity: 0.10,
+    side: THREE.DoubleSide,
+    depthWrite: false
+  });
+
+  // Create a dumbbell lobe (ellipsoid)
+  function createLobe(position, rotation, material, name) {
+    const lobeGeometry = new THREE.SphereGeometry(0.8, 24, 16);
+    const lobe = new THREE.Mesh(lobeGeometry, material);
+    lobe.scale.set(ORBITAL_2P_LOBE_SCALE[0], ORBITAL_2P_LOBE_SCALE[1], ORBITAL_2P_LOBE_SCALE[2]);
+    lobe.position.copy(position);
+    if (rotation) lobe.rotation.copy(rotation);
+    lobe.name = name;
+    return lobe;
+  }
+
+  // px orbital (along X axis) — 2 electrons (both lobes filled)
+  const px_pos = new THREE.Vector3(ORBITAL_2P_EXTENT * 0.6, 0, 0);
+  const px_neg = new THREE.Vector3(-ORBITAL_2P_EXTENT * 0.6, 0, 0);
+  const px_rotation = new THREE.Euler(0, 0, Math.PI / 2); // rotate lobe to align along X
+
+  const pxLobe1 = createLobe(px_pos, px_rotation, pFilledMaterial.clone(), 'electron_2p_px_lobe1_filled');
+  const pxLobe2 = createLobe(px_neg, px_rotation, pFilledMaterial.clone(), 'electron_2p_px_lobe2_filled');
+  orbital2pGroup.add(pxLobe1);
+  orbital2pGroup.add(pxLobe2);
+
+  // py orbital (along Y axis) — 1 electron (one lobe filled, one empty)
+  const py_pos = new THREE.Vector3(0, ORBITAL_2P_EXTENT * 0.6, 0);
+  const py_neg = new THREE.Vector3(0, -ORBITAL_2P_EXTENT * 0.6, 0);
+  // No rotation needed — default lobe stretches along Z, but we position along Y
+  const py_rotation = new THREE.Euler(Math.PI / 2, 0, 0); // rotate to align along Y
+
+  const pyLobe1 = createLobe(py_pos, py_rotation, pFilledMaterial.clone(), 'electron_2p_py_lobe1_filled');
+  const pyLobe2 = createLobe(py_neg, py_rotation, pEmptyMaterial.clone(), 'electron_2p_py_lobe2_empty');
+  orbital2pGroup.add(pyLobe1);
+  orbital2pGroup.add(pyLobe2);
+
+  // pz orbital (along Z axis) — 1 electron (one lobe filled, one empty)
+  const pz_pos = new THREE.Vector3(0, 0, ORBITAL_2P_EXTENT * 0.6);
+  const pz_neg = new THREE.Vector3(0, 0, -ORBITAL_2P_EXTENT * 0.6);
+  // Default lobe already stretches along Z
+
+  const pzLobe1 = createLobe(pz_pos, null, pFilledMaterial.clone(), 'electron_2p_pz_lobe1_filled');
+  const pzLobe2 = createLobe(pz_neg, null, pEmptyMaterial.clone(), 'electron_2p_pz_lobe2_empty');
+  orbital2pGroup.add(pzLobe1);
+  orbital2pGroup.add(pzLobe2);
+
+  orbitalsGroup.add(orbital2pGroup);
+  scene.add(orbitalsGroup);
+
+  // --- ANIMATION LOOP (C5) ---
+  let lastTime = performance.now();
+  let frameTimes = [];
+  const fpsDisplay = document.getElementById('fps-counter');
+
+  function animate(currentTime) {
+    requestAnimationFrame(animate);
+
+    const delta = currentTime - lastTime;
+    lastTime = currentTime;
+    frameTimes.push(delta);
+    if (frameTimes.length > 60) frameTimes.shift();
+
+    // Update FPS display every 30 frames
+    if (frameTimes.length % 30 === 0) {
+      const avgDelta = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
+      const fps = Math.round(1000 / avgDelta);
+      fpsDisplay.textContent = `FPS: ${fps}`;
+    }
+
+    // Subtle orbital rotation for visual effect
+    orbitalsGroup.rotation.y += 0.002;
+    orbital2pGroup.rotation.x += 0.001;
+
+    // Nucleus gentle wobble
+    nucleusGroup.rotation.x += 0.005;
+    nucleusGroup.rotation.y += 0.003;
+
+    controls.update();
+    renderer.render(scene, camera);
+  }
+
+  requestAnimationFrame(animate);
+
+  // --- RESIZE HANDLER ---
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  // --- EXPOSE FOR TESTING ---
+  // When ?test=true is in URL, expose internals for automated verification
+  window.__ATOM_SIM__ = {
+    scene,
+    camera,
+    renderer,
+    controls,
+    nucleusGroup,
+    orbitalsGroup,
+    orbital1sGroup,
+    orbital2sGroup,
+    orbital2pGroup,
+    frameTimes,
+    PHYSICS: {
+      NUCLEUS_RADIUS,
+      ORBITAL_1S_RADIUS,
+      ORBITAL_2S_RADIUS,
+      ORBITAL_2P_EXTENT,
+      ORBITAL_2P_LOBE_SCALE
+    }
+  };
+
+})();
+</script>
+</body>
+</html>
