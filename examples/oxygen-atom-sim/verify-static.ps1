@@ -129,7 +129,7 @@ Test-Criterion "C5" "Frame timing tracked for FPS measurement" ($hasDelta -and $
 Write-Host ""
 Write-Host "[C6] Camera controls:" -ForegroundColor Yellow
 
-$hasOrbitControls = $content.Contains("new THREE.OrbitControls(camera")
+$hasOrbitControls = $content.Contains("new OrbitControls(camera")
 $hasEnableRotate = $content.Contains("controls.enableRotate = true")
 $hasEnableZoom = $content.Contains("controls.enableZoom = true")
 $hasEnablePan = $content.Contains("controls.enablePan = true")
@@ -149,7 +149,7 @@ $hasProperClose = $content.Contains("</html>")
 
 Test-Criterion "C8" "No console.error calls in source" (-not $hasConsoleError) "console.error present: $hasConsoleError"
 Test-Criterion "C8" "HTML properly closed" $hasProperClose "</html> found"
-Test-Criterion "C8" "Three.js CDN scripts included" ($content.Contains("cdn.jsdelivr.net/npm/three@0.149.0")) "CDN URL found"
+Test-Criterion "C8" "Three.js CDN scripts included" ($content.Contains("unpkg.com/three@0.162.0")) "CDN URL found"
 
 # --- C9: Hund's rule ---
 Write-Host ""
