@@ -1,29 +1,35 @@
-# 📝 Changelog
+# Changelog
 
-<!-- 
+<!--
   MODEL: This is an APPEND-ONLY log. Never delete or modify past entries.
-  Add a new entry every time you make changes during Phase 4 (IMPLEMENT).
-  
-  Format each entry with the template below.
+  Add a new entry every time you make changes during implementation.
+
+  PURPOSE: Complement git history with intent and reasoning.
+  Git shows WHAT changed; this shows WHY and how it connects to the goal.
 -->
 
 ---
 
-<!-- 
-## Iteration [N] — Phase: [IMPLEMENT | VERIFY | EVALUATE] — [Date/Timestamp]
+<!--
+## Iteration [N] — Phase: [IMPLEMENT | VERIFY | ADVERSARIAL | EVALUATE] — [Date]
 
 ### Changes Made
-1. `[file path]`: [What was changed/created/deleted]
-2. `[file path]`: [What was changed/created/deleted]
+| File | Action | Criteria | Description |
+|------|--------|----------|-------------|
+| `[path]` | CREATE/MODIFY/DELETE | C1, C2 | [what changed] |
 
 ### Commands Executed
-- `[command]` → [result summary]
+| Command | Exit Code | Result |
+|---------|-----------|--------|
+| `[cmd]` | 0 | [summary] |
 
 ### Rationale
-[Why these specific changes were made — connect to the plan and success criteria]
+[Why these specific changes — connect to criterion IDs and plan]
 
-### Test Results
-[Brief summary of test outcomes, if applicable]
+### Scope Check
+- [ ] Only planned files were modified
+- [ ] No debugging remnants left
+- [ ] No unrelated changes
 
 ---
 -->
