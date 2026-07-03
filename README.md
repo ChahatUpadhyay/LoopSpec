@@ -261,6 +261,36 @@ No. A Markdown file cannot force a model to comply. But it provides clear enough
 
 The `examples/` directory contains **5 complete projects** built using LoopSpec v2 — each with full `.loopspec/` directories showing the protocol in action.
 
+### Visual Proof of AI-Generated Projects
+
+<details open>
+<summary><b>1. Oxygen Atom Simulation</b> (Three.js)</summary>
+<br/>
+<img src="images/oxygen-atom.png" alt="Oxygen Atom Simulation" width="800"/>
+</details>
+
+<details open>
+<summary><b>2. Black Hole Simulation</b> (Three.js, GLSL Shaders)</summary>
+<br/>
+<img src="images/black-hole.png" alt="Black Hole Simulation" width="800"/>
+</details>
+
+<details open>
+<summary><b>3. Limit Order Book Simulator</b> (Python, Flask)</summary>
+<br/>
+<img src="images/limit-order-book-1.png" alt="Limit Order Book Simulator Dashboard" width="800"/>
+<br/><br/>
+<img src="images/limit-order-book-2.png" alt="Limit Order Book Simulator Trade Tape" width="800"/>
+</details>
+
+<details open>
+<summary><b>4. Solar System Simulation</b> (Three.js)</summary>
+<br/>
+<img src="images/solar-system.png" alt="Solar System Simulation" width="800"/>
+</details>
+
+<br/>
+
 | Example | Description | Tech Stack | Criteria | Key Learnings |
 |---------|------------|------------|----------|---------------|
 | **[Oxygen Atom Sim](examples/oxygen-atom-sim/)** | 3D quantum orbital visualization of oxygen atom | Three.js, WebGL | 10 criteria | Orbital physics accuracy, shader rendering |
