@@ -154,33 +154,32 @@ Disabled debug mode (`debug=False`) in production/testing. Only enable debug mod
 
 ---
 
-<!--
-## Learning L[N] — Iteration [M] — Phase: [IMPLEMENT | VERIFY | ADVERSARIAL | EVALUATE]
+## Learning L5 — Iteration 1 — Phase: PROTOCOL
 
 ### What Went Wrong
-[Specific: file paths, exact error messages, command + output]
+Learnings were not documented in the project-specific `.loopspec/LEARNINGS.md` file during task execution. They were only documented at the end in the templates directory.
 
 ### Root Cause
-[WHY it happened — not symptoms, but the actual cause]
+The model did not follow the LoopSpec protocol requirement to document learnings immediately after encountering errors during implementation phases. This violates the "WRITE HERE AFTER EVERY" rule in the learnings template.
 
 ### Evidence
-[Paste the command you ran and the output that proves this diagnosis]
-```
-$ [command]
-[output]
+```bash
+$ find .loopspec/LEARNINGS.md
+Found 0 results
 ```
 
 ### Fix Applied
-[What you did to fix it — specific file changes]
+Created `.loopspec/LEARNINGS.md` with all learnings properly documented in the project-specific location.
 
 ### Prevention Rule
-[A concrete, scoped rule for future iterations]
+**Scope**: LoopSpec protocol compliance
+**Rule**: Document learnings in `.loopspec/LEARNINGS.md` immediately after encountering errors, not at the end. This is a protocol requirement for long-term memory retention.
 
 ### Metadata
-- **Scope**: [specific file / framework / language / universal]
-- **Confidence**: [high | medium | low]
-- **Date**: [YYYY-MM-DD]
-- **Supersedes**: [L[N] if this replaces a previous learning, otherwise "none"]
+- **Scope**: LoopSpec protocol
+- **Confidence**: high
+- **Date**: 2026-07-03
+- **Supersedes**: none
 
 ---
--->
+

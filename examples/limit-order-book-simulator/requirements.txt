@@ -1,0 +1,9 @@
+# Core dependencies
+pytest>=7.0.0
+
+# Visualization server
+flask>=2.0.0
+
+# Optional performance dependencies
+numpy>=1.24.0
+pandas>=2.0.0

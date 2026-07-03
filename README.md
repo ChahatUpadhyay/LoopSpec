@@ -6,6 +6,8 @@ Stop hoping your AI gets it right. Start *engineering* it to — with verifiable
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Protocol v2.0](https://img.shields.io/badge/protocol-v2.0-green.svg)](https://github.com/ChahatUpadhyay/LoopSpec)
+[![Made for AI](https://img.shields.io/badge/made%20for-AI%20coding%20tools-purple.svg)](#model-specific-integration)
+[![Examples](https://img.shields.io/badge/examples-5%20projects-orange.svg)](#examples)
 
 ---
 
@@ -16,6 +18,8 @@ LoopSpec is a **protocol** — a set of markdown files that give any AI model a 
 **The core idea**: Goal → Plan → Test → Implement → Verify → Learn → Repeat until done.
 
 **What makes v2 different from v1**: Evidence-gated verification, adversarial checking, anti-cheating rules, memory hygiene, safety gates, and honest acknowledgment of what a Markdown protocol can and cannot do.
+
+> **TL;DR for developers**: You write `GOAL.md` (what you want + success criteria). The AI does the rest — plans, implements, tests, learns from mistakes, and retries until every criterion has verifiable evidence.
 
 ### What LoopSpec IS:
 - A structured set of files that persist across AI sessions
@@ -253,37 +257,95 @@ No. A Markdown file cannot force a model to comply. But it provides clear enough
 
 ---
 
+## Examples
+
+The `examples/` directory contains **5 complete projects** built using LoopSpec v2 — each with full `.loopspec/` directories showing the protocol in action.
+
+| Example | Description | Tech Stack | Criteria | Key Learnings |
+|---------|------------|------------|----------|---------------|
+| **[Oxygen Atom Sim](examples/oxygen-atom-sim/)** | 3D quantum orbital visualization of oxygen atom | Three.js, WebGL | 10 criteria | Orbital physics accuracy, shader rendering |
+| **[Black Hole Sim](examples/black-hole-sim/)** | Cinematic black hole with gravitational lensing & accretion disk | Three.js, GLSL shaders | 20+ criteria | CDN version management, shader effects |
+| **[Solar System Sim](examples/solar-system-sim/)** | Interactive 3D solar system with Kepler orbital mechanics | Three.js, WebGL | 25+ criteria | Kepler's laws, planet scale ratios |
+| **[Financial Forecasting](examples/financial-forecasting-system/)** | Production ML pipeline with ARIMA, XGBoost, LSTM, Transformer | Python, PyTorch, FastAPI, Docker | 35+ criteria | Model registry, data pipeline, CI/CD |
+| **[Limit Order Book](examples/limit-order-book-simulator/)** | NASDAQ-style matching engine with multi-agent trading simulation | Python, Flask | 37 criteria | Import structure, agent API design, PnL tracking |
+
+### What to look at in each example:
+
+- **`GOAL.md`** — The human-written objective with success criteria table
+- **`PLAN.md`** — AI-generated implementation plan (linked to criteria)
+- **`TESTS.md`** — Test cases with evidence (command + output + exit code)
+- **`LEARNINGS.md`** — Mistakes the AI made and how it avoided repeating them
+- **`EVALUATION_REPORT.md`** — Final pass/fail assessment with evidence
+
+> Browse any example's `.loopspec/LEARNINGS.md` to see how the protocol's memory system prevents repeated mistakes across iterations.
+
+---
+
+## The `.loopspec/` File Structure — Quick Reference
+
+Every LoopSpec project gets a `.loopspec/` directory with these files:
+
+| File | Who Writes | Purpose |
+|------|-----------|---------|
+| **`PROTOCOL.md`** | LoopSpec (read-only) | The complete operating manual. The AI reads this first and follows the seven phases. Never edit this manually. |
+| **`GOAL.md`** | **You (Human)** | Your objective + success criteria table (C1, C2...) with verifier types and thresholds. This is the ONLY file you need to write. |
+| **`CONTEXT.md`** | AI (Phase 1) | AI scans your codebase and documents the current state, tech stack, dependencies, and baseline before changing anything. |
+| **`PLAN.md`** | AI (Phase 2) → **You approve** | AI writes a detailed implementation plan linked to your criteria. You must approve before it starts coding. |
+| **`TESTS.md`** | AI (Phase 3+) | Test cases designed before implementation, with evidence fields filled after execution (command, exit code, output). |
+| **`LEARNINGS.md`** | AI (ongoing) | The AI's long-term memory. Every mistake gets documented with root cause, evidence, and a prevention rule for future iterations. |
+| **`CHANGELOG.md`** | AI (ongoing) | Append-only log of every change made, with rationale and linked criteria. |
+| **`QUESTIONS.md`** | AI asks → **You answer** | When the AI is uncertain, it asks here instead of guessing. Your answers become permanent decisions. |
+| **`STATUS.md`** | AI (ongoing) | Human-readable current phase, iteration, confidence level, and next action. |
+| **`STATUS.json`** | AI (ongoing) | Machine-readable version of status for tooling integration. |
+| **`ADVERSARIAL_CHECK.md`** | AI (Phase 6) | AI actively tries to break its own implementation. Documents what it tried and what survived. |
+| **`EVALUATION_REPORT.md`** | AI (Phase 7) | Final evidence-gated report. Each criterion marked VERIFIED only with reproducible evidence. |
+
+---
+
 ## Project Structure
 
 ```
 LoopSpec/
-├── templates/           # Template files copied to .loopspec/
-│   ├── PROTOCOL.md      # The operating manual (v2)
-│   ├── GOAL.md          # Goal template with criterion IDs
-│   ├── CONTEXT.md       # Context template with baseline
-│   ├── PLAN.md          # Plan template with traceability
-│   ├── TESTS.md         # Tests template with evidence fields
-│   ├── LEARNINGS.md     # Memory template with hygiene rules
-│   ├── QUESTIONS.md     # Questions template with decisions log
-│   ├── CHANGELOG.md     # Changelog template
-│   ├── STATUS.md        # Human-readable status
-│   └── STATUS.json      # Machine-readable status
-├── setup.sh             # Unix/macOS bootstrap
-├── setup.ps1            # PowerShell bootstrap (PS 5.1+)
-├── setup.bat            # Windows CMD bootstrap
-├── LICENSE              # MIT
-└── README.md            # This file
+├── templates/               # Template files copied to .loopspec/
+│   ├── PROTOCOL.md          # The operating manual (v2)
+│   ├── GOAL.md              # Goal template with criterion IDs
+│   ├── CONTEXT.md           # Context template with baseline
+│   ├── PLAN.md              # Plan template with traceability
+│   ├── TESTS.md             # Tests template with evidence fields
+│   ├── LEARNINGS.md         # Memory template with hygiene rules
+│   ├── QUESTIONS.md         # Questions template with decisions log
+│   ├── CHANGELOG.md         # Changelog template
+│   ├── STATUS.md            # Human-readable status
+│   └── STATUS.json          # Machine-readable status
+├── examples/                # 5 complete protocol-driven projects
+│   ├── oxygen-atom-sim/     # 3D quantum orbital visualization
+│   ├── black-hole-sim/      # Cinematic black hole simulation
+│   ├── solar-system-sim/    # Interactive solar system
+│   ├── financial-forecasting-system/  # ML pipeline
+│   └── limit-order-book-simulator/    # Trading engine
+├── setup.sh                 # Unix/macOS bootstrap
+├── setup.ps1                # PowerShell bootstrap (PS 5.1+)
+├── setup.bat                # Windows CMD bootstrap
+├── LICENSE                  # MIT
+└── README.md                # This file
 ```
 
 ---
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request
+We welcome contributions! Here's how:
 
-Contributions that add evidence rigor, fix installer edge cases, or improve cross-model compatibility are especially welcome.
+1. **Fork** the repository
+2. **Create** a feature branch
+3. **Submit** a pull request
+
+### Ways to contribute:
+- **Add examples** — Build something with LoopSpec and submit it with full `.loopspec/` directory
+- **Improve the protocol** — Fix edge cases, add rigor, improve cross-model compatibility
+- **Fix installer issues** — Edge cases on different OS/shell combinations
+- **Documentation** — Better guides, tutorials, video walkthroughs
+- **Tooling** — Build integrations that read `STATUS.json` for dashboards/CI
 
 ---
 

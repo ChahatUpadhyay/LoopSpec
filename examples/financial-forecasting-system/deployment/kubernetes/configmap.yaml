@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  database-url: "sqlite:///./data/financial_forecasting.db"
+  api-host: "0.0.0.0"
+  api-port: "8000"
+  log-level: "INFO"
+  default-model: "xgboost"
+  model-path: "/app/data/models"
