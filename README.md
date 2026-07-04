@@ -1,11 +1,12 @@
-# LoopSpec v2
+# LoopSpec v3
 
-**A model-agnostic, self-correcting, evidence-driven AI development protocol.**
+**A model-agnostic, self-correcting, evidence-driven AI development protocol with CLI tooling.**
 
-Stop hoping your AI gets it right. Start *engineering* it to — with verifiable evidence at every step.
+Stop hoping your AI gets it right. Start *engineering* it to - with verifiable evidence at every step.
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Protocol v2.0](https://img.shields.io/badge/protocol-v2.0-green.svg)](https://github.com/ChahatUpadhyay/LoopSpec)
+[![Protocol v3.0](https://img.shields.io/badge/protocol-v3.0-green.svg)](https://github.com/ChahatUpadhyay/LoopSpec)
+[![CLI](https://img.shields.io/badge/CLI-Python%203.9%2B-blue.svg)](#cli-tool)
 [![Made for AI](https://img.shields.io/badge/made%20for-AI%20coding%20tools-purple.svg)](#model-specific-integration)
 [![Examples](https://img.shields.io/badge/examples-5%20projects-orange.svg)](#examples)
 
@@ -17,7 +18,7 @@ LoopSpec is a **protocol** — a set of markdown files that give any AI model a 
 
 **The core idea**: Goal → Plan → Test → Implement → Verify → Learn → Repeat until done.
 
-**What makes v2 different from v1**: Evidence-gated verification, adversarial checking, anti-cheating rules, memory hygiene, safety gates, and honest acknowledgment of what a Markdown protocol can and cannot do.
+**What makes v3 different**: CLI tooling (`loopspec init/status/validate/report`), git integration, 62% context reduction, incremental verification, smart retry strategies, and phase-specific file loading that cuts token usage by 40%+.
 
 > **TL;DR for developers**: You write `GOAL.md` (what you want + success criteria). The AI does the rest — plans, implements, tests, learns from mistakes, and retries until every criterion has verifiable evidence.
 
@@ -35,43 +36,41 @@ LoopSpec is a **protocol** — a set of markdown files that give any AI model a 
 
 ---
 
-## Quick Start (< 2 minutes)
+## Quick Start (< 30 seconds)
 
-### Option 1: Clone and Initialize
+### Option 1: CLI (Recommended)
 
 ```bash
-# Clone LoopSpec
-git clone https://github.com/ChahatUpadhyay/LoopSpec.git
+# Install (once)
+pip install git+https://github.com/ChahatUpadhyay/LoopSpec.git
 
-# Navigate to YOUR project
+# Initialize in your project
 cd your-project
+loopspec init
 
-# Initialize LoopSpec in your project
-# macOS / Linux
-bash /path/to/LoopSpec/setup.sh .
-
-# Windows (PowerShell)
-powershell -ExecutionPolicy Bypass -File \path\to\LoopSpec\setup.ps1 -TargetDir .
-
-# Windows (CMD)
-\path\to\LoopSpec\setup.bat .
+# Check status anytime
+loopspec status
 ```
 
-### Option 2: Manual Setup (Zero Dependencies)
+### Option 2: Clone and Initialize
 
 ```bash
-# Create the directory
-mkdir -p .loopspec/iterations
+git clone https://github.com/ChahatUpadhyay/LoopSpec.git
+cd your-project
+python /path/to/LoopSpec/cli/loopspec.py init .
+```
 
-# Copy the template files from this repo's templates/ folder into .loopspec/
-# That's it. No install, no npm, no pip, no binary.
+### Option 3: Manual Setup (Zero Dependencies)
+
+```bash
+mkdir -p .loopspec/iterations
+# Copy templates/ files into .loopspec/
 ```
 
 ### Then:
 
-1. **Edit** `.loopspec/GOAL.md` — define what you want, with criterion IDs (C1, C2, ...)
-2. **Open** your project in any AI coding tool
-3. **Tell the AI**: `"Read .loopspec/PROTOCOL.md and begin."`
+1. **Edit** `.loopspec/GOAL.md` - define what you want (C1, C2, ...)
+2. **Tell the AI**: `"Read .loopspec/PROTOCOL.md and begin."`
 
 Done. The AI handles the rest.
 
@@ -97,20 +96,19 @@ ANALYZE → PLAN → TEST DESIGN → IMPLEMENT → VERIFY → ADVERSARIAL CHECK 
 | **6. ADVERSARIAL** | AI tries to disprove its own success | Must attempt to break each criterion |
 | **7. EVALUATE** | Final evidence-gated pass/fail | Criterion is VERIFIED only with current evidence |
 
-### What's New in v2
+### What's New in v3
 
-| Feature | v1 | v2 |
+| Feature | v2 | v3 |
 |---------|----|----|
-| Criterion IDs | No | C1, C2, ... with verifier + threshold |
-| Evidence requirement | "Tests pass" | Command + output + exit code + location |
-| Adversarial checking | No | Mandatory attempt to disprove success |
-| Anti-cheating rules | No | Cannot weaken tests, replace verifiers, or test copies |
-| Memory hygiene | Append anything | Evidence, scope, confidence, supersession |
-| Safety gates | Basic permissions | Destructive/irreversible/costly/secret-bearing gates |
-| State model | Free-form | Strict state machine with WAITING_HUMAN, BLOCKED |
-| Installer | Overwrites AGENTS.md | Non-destructive append, --repair mode |
-| Honest limitations | Claims autonomy | Explicitly states what Markdown cannot do |
-| Machine-readable state | STATUS.md only | STATUS.json for tooling integration |
+| CLI tooling | None (scripts only) | `loopspec init/status/validate/report/git-sync` |
+| Context cost | ~12K tokens (all files) | Phase-specific loading: 2-4 files per phase (40%+ reduction) |
+| Template size | 21.5KB (verbose comments) | 8.1KB slim templates (62% reduction) |
+| Retry guidance | "Materially different" | 5 named strategies: BISECT, ISOLATE, SIMPLIFY, INVERT, DECOMPOSE |
+| Verification | All-at-end | Incremental (verify per criterion as you go) |
+| Git integration | Manual | Auto branch suggestions, commit messages with criterion IDs |
+| STATUS.json | 362 bytes, verbose keys | <500 bytes for 10 criteria, compressed keys |
+| Setup friction | 6+ manual steps | Single command: `loopspec init` |
+| Compact mode | Must read full protocol | Essential rules in <1500 words for budget-constrained contexts |
 
 ---
 
@@ -211,24 +209,57 @@ The plan requires human approval. This is non-negotiable. It prevents AI overbui
 
 ---
 
-## Upgrading from v1
+## CLI Tool
+
+LoopSpec v3 includes a Python CLI (zero dependencies beyond stdlib):
 
 ```bash
-# If you already have .loopspec/ from v1:
-bash /path/to/LoopSpec/setup.sh . --repair
+# Initialize .loopspec/ in your project
+loopspec init [path]
 
-# Or PowerShell:
-.\setup.ps1 -TargetDir . -Repair
+# Show current protocol state (phase, iteration, criteria progress)
+loopspec status [path]
+
+# Validate .loopspec/ structure (find broken refs, missing fields)
+loopspec validate [path]
+
+# Generate markdown progress report
+loopspec report [path] [-o output.md]
+
+# Git integration (branch/commit suggestions)
+loopspec git-sync [path]
 ```
 
-This updates `PROTOCOL.md` and adds `STATUS.json` without overwriting your existing GOAL, LEARNINGS, or other data files.
+### Example: Status Output
+```
+LoopSpec Status
+  Phase:      IMPLEMENT
+  Iteration:  2
+  Blocked:    no
+  Confidence: 60%
 
-### Key differences to be aware of:
-- **GOAL.md** now expects criterion IDs (C1, C2, ...) with verifier and threshold columns
-- **TESTS.md** now requires evidence fields and criterion references
-- **LEARNINGS.md** now requires scope, confidence, and evidence per entry
-- **New phase**: Adversarial Check (Phase 6) between Verify and Evaluate
-- **New file**: `STATUS.json` for machine-readable state
+  Criteria: [#######.............] 3/10
+    + C1: API endpoints
+    + C2: Database schema
+    + C3: Authentication
+    o C4: Test coverage
+    o C5: Documentation
+```
+
+---
+
+## Upgrading from v2
+
+```bash
+loopspec init --repair
+```
+
+This updates `PROTOCOL.md` with v3 sections without overwriting your existing data files.
+
+### v3 is fully backward-compatible:
+- All v2 `.loopspec/` directories validate cleanly with `loopspec validate`
+- STATUS.json accepts both `iteration` (v2) and `iter` (v3) field names
+- Templates are slimmer but structurally identical
 
 ---
 
@@ -336,28 +367,22 @@ Every LoopSpec project gets a `.loopspec/` directory with these files:
 
 ```
 LoopSpec/
-├── templates/               # Template files copied to .loopspec/
-│   ├── PROTOCOL.md          # The operating manual (v2)
-│   ├── GOAL.md              # Goal template with criterion IDs
-│   ├── CONTEXT.md           # Context template with baseline
-│   ├── PLAN.md              # Plan template with traceability
-│   ├── TESTS.md             # Tests template with evidence fields
-│   ├── LEARNINGS.md         # Memory template with hygiene rules
-│   ├── QUESTIONS.md         # Questions template with decisions log
-│   ├── CHANGELOG.md         # Changelog template
-│   ├── STATUS.md            # Human-readable status
-│   └── STATUS.json          # Machine-readable status
-├── examples/                # 5 complete protocol-driven projects
-│   ├── oxygen-atom-sim/     # 3D quantum orbital visualization
-│   ├── black-hole-sim/      # Cinematic black hole simulation
-│   ├── solar-system-sim/    # Interactive solar system
-│   ├── financial-forecasting-system/  # ML pipeline
-│   └── limit-order-book-simulator/    # Trading engine
-├── setup.sh                 # Unix/macOS bootstrap
-├── setup.ps1                # PowerShell bootstrap (PS 5.1+)
-├── setup.bat                # Windows CMD bootstrap
-├── LICENSE                  # MIT
-└── README.md                # This file
+|-- cli/                     # v3 CLI tool (Python, zero deps)
+|   |-- __init__.py
+|   |-- __main__.py
+|   +-- loopspec.py          # Main CLI (init/status/validate/report/git-sync)
+|-- templates/               # Slim v3 templates + INSTRUCTIONS.md
+|   |-- PROTOCOL.md          # Operating manual (v3 with compact mode)
+|   |-- GOAL.md              # Goal template (slim)
+|   |-- INSTRUCTIONS.md      # Deferred comments (not loaded by AI)
+|   +-- STATUS.json          # Compressed state format
+|-- tests/                   # Automated test suite
+|   +-- test_cli.py          # 37 automated tests for CLI
+|-- examples/                # 5 complete protocol-driven projects
+|-- setup.sh / .ps1 / .bat   # Legacy v2 bootstrap (still works)
+|-- pyproject.toml           # Package config (pip installable)
+|-- LICENSE                  # MIT
++-- README.md                # This file
 ```
 
 ---
