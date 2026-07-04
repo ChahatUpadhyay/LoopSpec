@@ -1,0 +1,15 @@
+{
+  "protocol_version": "2.0",
+  "phase": "IDLE",
+  "iteration": 0,
+  "max_iterations": 10,
+  "started": null,
+  "last_updated": null,
+  "blocked": false,
+  "blocked_reason": null,
+  "confidence": 0.0,
+  "next_action": "Human to fill in GOAL.md, then instruct the model to begin",
+  "criteria": [],
+  "phase_history": [],
+  "failure_counts": {}
+}

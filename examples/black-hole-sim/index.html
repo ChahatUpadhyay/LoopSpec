@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black Hole Simulation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; }
+        #canvas-container { width: 100vw; height: 100vh; }
+        #ui-overlay { position: fixed; top: 10px; left: 10px; color: white; z-index: 100; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 8px; max-width: 300px; }
+        #fps-counter { position: fixed; top: 10px; right: 10px; color: #0f0; font-size: 14px; background: rgba(0,0,0,0.7); padding: 8px 12px; border-radius: 4px; z-index: 100; }
+        #controls { position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 100; }
+        .control-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; transition: background 0.3s; }
+        .control-btn:hover { background: rgba(255,255,255,0.4); }
+        #parameters { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 15px; border-radius: 8px; z-index: 100; display: flex; gap: 20px; }
+        .param-group { display: flex; flex-direction: column; gap: 5px; }
+        .param-group label { font-size: 12px; }
+        #info-panel { position: fixed; top: 50%; right: 10px; transform: translateY(-50%); background: rgba(0,0,0,0.8); color: white; padding: 15px; border-radius: 8px; max-width: 280px; z-index: 100; }
+        #info-panel h3 { margin-bottom: 10px; color: #ff6b6b; }
+        #info-panel p { margin: 5px 0; font-size: 12px; }
+        #speed-display { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); color: white; background: rgba(0,0,0,0.7); padding: 5px 10px; border-radius: 4px; font-size: 12px; z-index: 100; }
+        #instructions { position: fixed; bottom: 10px; right: 10px; color: rgba(255,255,255,0.6); font-size: 11px; background: rgba(0,0,0,0.5); padding: 8px; border-radius: 4px; z-index: 100; }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div id="ui-overlay">
+        <h2>Black Hole Simulation</h2>
+        <p style="font-size: 12px; margin-top: 10px;">Ultra-realistic 3D visualization</p>
+    </div>
+    
+    <div id="fps-counter">FPS: --</div>
+    
+    <div id="parameters">
+        <div class="param-group">
+            <label>Mass (Solar Masses)</label>
+            <input type="range" id="mass-slider" min="1" max="100" value="10">
+            <span id="mass-value">10</span>
+        </div>
+        <div class="param-group">
+            <label>Accretion Rate</label>
+            <input type="range" id="accretion-slider" min="1" max="100" value="50">
+            <span id="accretion-value">50</span>
+        </div>
+        <div class="param-group">
+            <label>Disk Temperature</label>
+            <input type="range" id="temp-slider" min="1" max="100" value="50">
+            <span id="temp-value">50</span>
+        </div>
+    </div>
+    
+    <div id="controls">
+        <button class="control-btn" id="pause-btn">Pause</button>
+        <button class="control-btn" id="play-btn">Play</button>
+        <button class="control-btn" id="slow-btn">Slower</button>
+        <button class="control-btn" id="fast-btn">Faster</button>
+        <button class="control-btn" id="reverse-btn">Reverse</button>
+    </div>
+    
+    <div id="speed-display">Speed: 1x</div>
+    
+    <div id="info-panel">
+        <h3>Black Hole Physics</h3>
+        <p>Schwarzschild Radius: <span id="rs-value">--</span> km</p>
+        <p>Event Horizon: <span id="eh-value">--</span> km</p>
+        <p>Photon Sphere: <span id="ps-value">--</span> km</p>
+        <p>Mass: <span id="bh-mass">--</span> M☉</p>
+        <p style="margin-top: 10px; font-size: 11px; color: #888;">The Schwarzschild radius Rs = 2GM/c² defines the event horizon boundary.</p>
+    </div>
+    
+    <div id="instructions">
+        Space: Pause/Play | Arrows: Speed | +/-: Zoom | Drag: Rotate | Scroll: Zoom
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+        // --- PHYSICS CONSTANTS ---
+        const G = 6.674e-11;
+        const c = 299792458;
+        const SOLAR_MASS = 1.989e30;
+
+        // --- SCENE SETUP ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // --- POST-PROCESSING ---
+        const composer = new EffectComposer(renderer);
+        const renderPass = new RenderPass(scene, camera);
+        composer.addPass(renderPass);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        composer.addPass(bloomPass);
+
+        // --- CAMERA POSITION ---
+        camera.position.set(0, 30, 100);
+
+        // --- CONTROLS ---
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableRotate = true;
+        controls.enableZoom = true;
+        controls.enablePan = true;
+        controls.update();
+
+        // --- BLACK HOLE PARAMETERS ---
+        let blackHoleMass = 10; // Solar masses
+        let accretionRate = 0.5;
+        let diskTemperature = 0.5;
+
+        // --- SCHWARZSCHILD RADIUS CALCULATION ---
+        function calculateSchwarzschildRadius(mass) {
+            const massKg = mass * SOLAR_MASS;
+            return (2 * G * massKg) / (c * c);
+        }
+
+        // --- EVENT HORIZON ---
+        const eventHorizonGeometry = new THREE.SphereGeometry(5, 64, 64);
+        const eventHorizonMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+        const eventHorizon = new THREE.Mesh(eventHorizonGeometry, eventHorizonMaterial);
+        eventHorizon.position.set(0, 0, 0);
+        scene.add(eventHorizon);
+
+        // --- PHOTON SPHERE ---
+        const photonSphereGeometry = new THREE.TorusGeometry(7.5, 0.3, 32, 100);
+        const photonSphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.8 });
+        const photonSphere = new THREE.Mesh(photonSphereGeometry, photonSphereMaterial);
+        photonSphere.rotation.x = Math.PI / 2;
+        scene.add(photonSphere);
+
+        // --- ACCRETION DISK PARTICLE SYSTEM ---
+        const particleCount = 2000;
+        const accretionGeometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+        const velocities = new Float32Array(particleCount);
+
+        for (let i = 0; i < particleCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 8 + Math.random() * 25;
+            const height = (Math.random() - 0.5) * 0.5;
+            
+            positions[i * 3] = Math.cos(angle) * distance;
+            positions[i * 3 + 1] = height;
+            positions[i * 3 + 2] = Math.sin(angle) * distance;
+            
+            // Doppler beaming: blue shift on approaching side, red shift on receding
+            const velocity = Math.sqrt(1 / distance);
+            velocities[i] = velocity;
+            
+            // Color based on velocity (Doppler effect)
+            const color = new THREE.Color();
+            if (Math.cos(angle) > 0) {
+                color.setHSL(0.6, 1, 0.5 + velocity * 0.3); // Blue shift
+            } else {
+                color.setHSL(0.0, 1, 0.5 + velocity * 0.3); // Red shift
+            }
+            colors[i * 3] = color.r;
+            colors[i * 3 + 1] = color.g;
+            colors[i * 3 + 2] = color.b;
+        }
+
+        accretionGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        accretionGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        
+        const accretionMaterial = new THREE.PointsMaterial({
+            size: 0.3,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+        
+        const accretionDisk = new THREE.Points(accretionGeometry, accretionMaterial);
+        scene.add(accretionDisk);
+
+        // --- GRAVITATIONAL LENSING (Simplified Refraction) ---
+        const lensingGeometry = new THREE.SphereGeometry(15, 64, 64);
+        const lensingMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.05,
+            side: THREE.BackSide
+        });
+        const lensingSphere = new THREE.Mesh(lensingGeometry, lensingMaterial);
+        scene.add(lensingSphere);
+
+        // --- STAR FIELD BACKGROUND ---
+        const starCount = 2000;
+        const starGeometry = new THREE.BufferGeometry();
+        const starPositions = new Float32Array(starCount * 3);
+        const starSizes = new Float32Array(starCount);
+
+        for (let i = 0; i < starCount; i++) {
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            const r = 500 + Math.random() * 1000;
+            
+            starPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+            starPositions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+            starPositions[i * 3 + 2] = r * Math.cos(phi);
+            
+            starSizes[i] = Math.random() * 2 + 0.5;
+        }
+
+        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        starGeometry.setAttribute('size', new THREE.BufferAttribute(starSizes, 1));
+        
+        const starMaterial = new THREE.PointsMaterial({
+            size: 1,
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.8
+        });
+        
+        const starField = new THREE.Points(starGeometry, starMaterial);
+        scene.add(starField);
+
+        // --- TIME CONTROL ---
+        const timeControl = {
+            speed: 1,
+            paused: false,
+            pause: function() { this.paused = true; },
+            play: function() { this.paused = false; },
+            setSpeed: function(newSpeed) { this.speed = newSpeed; },
+            reverseTime: function() { this.speed *= -1; }
+        };
+
+        // --- FPS COUNTER ---
+        const fpsCounter = {
+            fps: 0,
+            frameCount: 0,
+            lastTime: performance.now()
+        };
+
+        // --- KEYBOARD SHORTCUTS ---
+        document.addEventListener('keydown', (event) => {
+            switch(event.code) {
+                case 'Space':
+                    event.preventDefault();
+                    timeControl.paused = !timeControl.paused;
+                    break;
+                case 'ArrowUp':
+                    timeControl.speed = Math.min(timeControl.speed * 1.5, 10);
+                    break;
+                case 'ArrowDown':
+                    timeControl.speed = Math.max(timeControl.speed / 1.5, 0.1);
+                    break;
+                case 'Equal':
+                case 'NumpadAdd':
+                    camera.position.multiplyScalar(0.9);
+                    break;
+                case 'Minus':
+                case 'NumpadSubtract':
+                    camera.position.multiplyScalar(1.1);
+                    break;
+                case 'Escape':
+                    camera.position.set(0, 30, 100);
+                    controls.reset();
+                    break;
+            }
+            document.getElementById('speed-display').textContent = `Speed: ${timeControl.speed.toFixed(1)}x`;
+        });
+
+        // --- BUTTON CONTROLS ---
+        document.getElementById('pause-btn').addEventListener('click', () => timeControl.pause());
+        document.getElementById('play-btn').addEventListener('click', () => timeControl.play());
+        document.getElementById('slow-btn').addEventListener('click', () => {
+            timeControl.speed = Math.max(timeControl.speed / 2, 0.1);
+            document.getElementById('speed-display').textContent = `Speed: ${timeControl.speed.toFixed(1)}x`;
+        });
+        document.getElementById('fast-btn').addEventListener('click', () => {
+            timeControl.speed = Math.min(timeControl.speed * 2, 10);
+            document.getElementById('speed-display').textContent = `Speed: ${timeControl.speed.toFixed(1)}x`;
+        });
+        document.getElementById('reverse-btn').addEventListener('click', () => {
+            timeControl.reverseTime();
+            document.getElementById('speed-display').textContent = `Speed: ${timeControl.speed.toFixed(1)}x`;
+        });
+
+        // --- PARAMETER CONTROLS ---
+        document.getElementById('mass-slider').addEventListener('input', (e) => {
+            blackHoleMass = parseInt(e.target.value);
+            document.getElementById('mass-value').textContent = blackHoleMass;
+            updateBlackHolePhysics();
+        });
+
+        document.getElementById('accretion-slider').addEventListener('input', (e) => {
+            accretionRate = parseInt(e.target.value) / 100;
+            document.getElementById('accretion-value').textContent = e.target.value;
+        });
+
+        document.getElementById('temp-slider').addEventListener('input', (e) => {
+            diskTemperature = parseInt(e.target.value) / 100;
+            document.getElementById('temp-value').textContent = e.target.value;
+        });
+
+        function updateBlackHolePhysics() {
+            const rs = calculateSchwarzschildRadius(blackHoleMass);
+            const rsKm = rs / 1000;
+            
+            document.getElementById('rs-value').textContent = rsKm.toFixed(2);
+            document.getElementById('eh-value').textContent = rsKm.toFixed(2);
+            document.getElementById('ps-value').textContent = (rsKm * 1.5).toFixed(2);
+            document.getElementById('bh-mass').textContent = blackHoleMass;
+            
+            // Update event horizon size
+            const scale = Math.pow(blackHoleMass / 10, 0.3);
+            eventHorizon.scale.set(scale, scale, scale);
+            photonSphere.scale.set(scale, scale, scale);
+        }
+
+        updateBlackHolePhysics();
+
+        // --- RESIZE HANDLER ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (!timeControl.paused) {
+                // Rotate accretion disk
+                accretionDisk.rotation.y += 0.001 * timeControl.speed * accretionRate;
+                
+                // Rotate photon sphere
+                photonSphere.rotation.z += 0.0005 * timeControl.speed;
+                
+                // Update particle colors for Doppler effect
+                const positions = accretionDisk.geometry.attributes.position.array;
+                const colors = accretionDisk.geometry.attributes.color.array;
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const x = positions[i * 3];
+                    const z = positions[i * 3 + 2];
+                    const angle = Math.atan2(z, x);
+                    const velocity = velocities[i] * timeControl.speed;
+                    
+                    const color = new THREE.Color();
+                    if (Math.cos(angle) > 0) {
+                        color.setHSL(0.6, 1, 0.5 + velocity * 0.3 * diskTemperature);
+                    } else {
+                        color.setHSL(0.0, 1, 0.5 + velocity * 0.3 * diskTemperature);
+                    }
+                    colors[i * 3] = color.r;
+                    colors[i * 3 + 1] = color.g;
+                    colors[i * 3 + 2] = color.b;
+                }
+                accretionDisk.geometry.attributes.color.needsUpdate = true;
+                
+                // Slowly rotate star field
+                starField.rotation.y += 0.00005 * timeControl.speed;
+            }
+
+            // Update FPS
+            fpsCounter.frameCount++;
+            const currentTime = performance.now();
+            if (currentTime - fpsCounter.lastTime >= 1000) {
+                fpsCounter.fps = fpsCounter.frameCount;
+                fpsCounter.frameCount = 0;
+                fpsCounter.lastTime = currentTime;
+                document.getElementById('fps-counter').textContent = `FPS: ${fpsCounter.fps}`;
+            }
+
+            controls.update();
+            composer.render();
+        }
+
+        animate();
+
+        // --- EXPOSE FOR TESTING ---
+        window.__BLACK_HOLE_SIM__ = {
+            scene,
+            camera,
+            renderer,
+            composer,
+            controls,
+            eventHorizon,
+            photonSphere,
+            accretionDisk,
+            starField,
+            timeControl,
+            fpsCounter,
+            calculateSchwarzschildRadius,
+            blackHoleMass,
+            accretionRate,
+            diskTemperature
+        };
+    </script>
+</body>
+</html>
