@@ -295,19 +295,27 @@ The `examples/` directory contains **5 complete projects** built using LoopSpec 
 ### Visual Proof of AI-Generated Projects
 
 <details open>
-<summary><b>1. Oxygen Atom Simulation</b> (Three.js)</summary>
+<summary><b>1. Galaxy Collision Simulation</b> (Python, PyQt6, Vispy, CPU Barnes-Hut)</summary>
+<br/>
+<img src="examples/galaxy-collision-sim/images/galaxy_collision.png" alt="Galaxy Collision Simulation" width="800"/>
+<br/><br/>
+<img src="examples/galaxy-collision-sim/images/galaxy_collision_2.png" alt="Galaxy Collision Analysis Panel" width="800"/>
+</details>
+
+<details open>
+<summary><b>2. Oxygen Atom Simulation</b> (Three.js)</summary>
 <br/>
 <img src="images/oxygen-atom.png" alt="Oxygen Atom Simulation" width="800"/>
 </details>
 
 <details open>
-<summary><b>2. Black Hole Simulation</b> (Three.js, GLSL Shaders)</summary>
+<summary><b>3. Black Hole Simulation</b> (Three.js, GLSL Shaders)</summary>
 <br/>
 <img src="images/black-hole.png" alt="Black Hole Simulation" width="800"/>
 </details>
 
 <details open>
-<summary><b>3. Limit Order Book Simulator</b> (Python, Flask)</summary>
+<summary><b>4. Limit Order Book Simulator</b> (Python, Flask)</summary>
 <br/>
 <img src="images/limit-order-book-1.png" alt="Limit Order Book Simulator Dashboard" width="800"/>
 <br/><br/>
@@ -315,8 +323,9 @@ The `examples/` directory contains **5 complete projects** built using LoopSpec 
 </details>
 
 <details open>
-<summary><b>4. Solar System Simulation</b> (Three.js)</summary>
-<br/>
+<summary><b>5. Solar System Simulation</b> (Three.js)</summary>
+<br/>Galaxy Collision Sim](examples/galaxy-collision-sim/)** | GPU-accelerated N-body galaxy collision with GUI | Python, PyQt6, Vispy, NumPy | 74 criteria | Barnes-Hut O(N log N) algorithm, vispy rendering, CuPy |
+| **[
 <img src="images/solar-system.png" alt="Solar System Simulation" width="800"/>
 </details>
 
