@@ -290,7 +290,7 @@ No. A Markdown file cannot force a model to comply. But it provides clear enough
 
 ## Examples
 
-The `examples/` directory contains **5 complete projects** built using LoopSpec v2 — each with full `.loopspec/` directories showing the protocol in action.
+The `examples/` directory contains **7 projects** built using LoopSpec — each with full `.loopspec/` directories showing the protocol in action.
 
 ### Visual Proof of AI-Generated Projects
 
@@ -324,20 +324,29 @@ The `examples/` directory contains **5 complete projects** built using LoopSpec 
 
 <details open>
 <summary><b>5. Solar System Simulation</b> (Three.js)</summary>
-<br/>Galaxy Collision Sim](examples/galaxy-collision-sim/)** | GPU-accelerated N-body galaxy collision with GUI | Python, PyQt6, Vispy, NumPy | 74 criteria | Barnes-Hut O(N log N) algorithm, vispy rendering, CuPy |
-| **[
+<br/>
 <img src="images/solar-system.png" alt="Solar System Simulation" width="800"/>
+</details>
+
+<details open>
+<summary><b>6. Fractal Explorer</b> (HTML/JS Canvas, Web Worker) — <i>v3 Protocol Test by AI Auditor</i></summary>
+<br/>
+<img src="images/Factoral_Explorer.png" alt="Fractal Explorer - Mandelbrot Fire" width="800"/>
+<br/><br/>
+<img src="images/Factoral_Explorer_2.png" alt="Fractal Explorer - Julia Classic" width="800"/>
 </details>
 
 <br/>
 
 | Example | Description | Tech Stack | Criteria | Key Learnings |
 |---------|------------|------------|----------|---------------|
+| **[Galaxy Collision Sim](examples/galaxy-collision-sim/)** | GPU-accelerated N-body galaxy collision with GUI | Python, PyQt6, Vispy, NumPy | 74 criteria | Barnes-Hut O(N log N) algorithm, vispy rendering, CuPy |
 | **[Oxygen Atom Sim](examples/oxygen-atom-sim/)** | 3D quantum orbital visualization of oxygen atom | Three.js, WebGL | 10 criteria | Orbital physics accuracy, shader rendering |
 | **[Black Hole Sim](examples/black-hole-sim/)** | Cinematic black hole with gravitational lensing & accretion disk | Three.js, GLSL shaders | 20+ criteria | CDN version management, shader effects |
 | **[Solar System Sim](examples/solar-system-sim/)** | Interactive 3D solar system with Kepler orbital mechanics | Three.js, WebGL | 25+ criteria | Kepler's laws, planet scale ratios |
 | **[Financial Forecasting](examples/financial-forecasting-system/)** | Production ML pipeline with ARIMA, XGBoost, LSTM, Transformer | Python, PyTorch, FastAPI, Docker | 35+ criteria | Model registry, data pipeline, CI/CD |
 | **[Limit Order Book](examples/limit-order-book-simulator/)** | NASDAQ-style matching engine with multi-agent trading simulation | Python, Flask | 37 criteria | Import structure, agent API design, PnL tracking |
+| **[Fractal Explorer](examples/fractal-explorer/)** | Interactive Mandelbrot/Julia set visualizer with zoom, pan, color schemes | HTML, JS, Canvas, Web Worker | 15 criteria | Single-file app, Web Worker non-blocking, 7-phase protocol test |
 
 ### What to look at in each example:
 
