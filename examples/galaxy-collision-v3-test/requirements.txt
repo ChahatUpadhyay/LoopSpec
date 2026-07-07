@@ -1,0 +1,8 @@
+PyQt6>=6.5
+vispy>=0.14
+numpy>=1.24,<2.0
+cupy-cuda11x>=13.0
+Pillow>=10.0
+imageio>=2.30
+imageio-ffmpeg>=0.4
+pyqtgraph>=0.13

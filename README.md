@@ -347,6 +347,7 @@ The `examples/` directory contains **7 projects** built using LoopSpec — each 
 | **[Financial Forecasting](examples/financial-forecasting-system/)** | Production ML pipeline with ARIMA, XGBoost, LSTM, Transformer | Python, PyTorch, FastAPI, Docker | 35+ criteria | Model registry, data pipeline, CI/CD |
 | **[Limit Order Book](examples/limit-order-book-simulator/)** | NASDAQ-style matching engine with multi-agent trading simulation | Python, Flask | 37 criteria | Import structure, agent API design, PnL tracking |
 | **[Fractal Explorer](examples/fractal-explorer/)** | Interactive Mandelbrot/Julia set visualizer with zoom, pan, color schemes | HTML, JS, Canvas, Web Worker | 15 criteria | Single-file app, Web Worker non-blocking, 7-phase protocol test |
+| **[Galaxy Collision v3 Test](examples/galaxy-collision-v3-test/)** | Full protocol stress test: N-body galaxy collision with GPU rendering | Python, PyQt6, Vispy, CuPy | 74 criteria (71/71 verified) | Barnes-Hut O(N log N), leapfrog integrator, 1 iteration to DONE |
 
 ### What to look at in each example:
 
