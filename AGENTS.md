@@ -1,6 +1,6 @@
 ﻿# AGENTS.md
 
-> This project uses [LoopSpec v2](https://github.com/ChahatUpadhyay/LoopSpec) - a self-correcting, evidence-driven AI development protocol.
+> This project uses [LoopSpec v3](https://github.com/ChahatUpadhyay/LoopSpec) - a self-correcting, evidence-driven AI development protocol.
 
 ## Instructions for AI Agents
 
